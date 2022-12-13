@@ -33,7 +33,7 @@ apply plugin: 'org.spongepowered.mixin'
 
 
 //Build variables
-version = "2.5.0"
+version = "2.5.0-Vault_Hunters_Integration-1"
 group = "de.erdbeerbaerlp.dcintegration"
 archivesBaseName = "dcintegration-forge"
 
@@ -101,13 +101,15 @@ dependencies {
     }
 
     // =========  Minecraft Forge =============
-    minecraft "net.minecraftforge:forge:${project.mcVersion}-40.1.0"
+    minecraft "net.minecraftforge:forge:${project.mcVersion}-40.1.61"
 
     //Mixin
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     //Dynmap-API
     compileOnly('com.github.webbukkit:DynmapCoreAPI:2.5')
+
+    implementation files("libs/the_vault-${project.vhVersion}.jar")
 }
 
 
