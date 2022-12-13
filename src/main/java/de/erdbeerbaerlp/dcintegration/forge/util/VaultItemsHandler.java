@@ -14,8 +14,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 import iskallia.vault.config.EtchingConfig;
-import iskallia.vault.config.PaxelConfigs;
 import iskallia.vault.config.gear.VaultGearTierConfig;
+import iskallia.vault.core.world.generator.layout.DIYRoomEntry;
 import iskallia.vault.dynamodel.model.armor.ArmorPieceModel;
 import iskallia.vault.gear.VaultGearState;
 import iskallia.vault.gear.attribute.VaultGearAttribute;
@@ -26,10 +26,10 @@ import iskallia.vault.gear.item.VaultGearItem;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModDynamicModels;
 import iskallia.vault.init.ModGearAttributes;
+import iskallia.vault.item.VaultRuneItem;
 import iskallia.vault.item.paxel.PaxelItem;
 import iskallia.vault.util.MiscUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.*;
 import net.minecraft.world.item.Item;
@@ -290,6 +290,27 @@ public class VaultItemsHandler
                 }
             });
         }
+    }
+
+
+    /**
+     * This method parses VaultRune item tooltip into discord chat.
+     * @param builder Embed Builder.
+     * @param itemStack Vault Rune Item Stack.
+     */
+    public static void handleRuneTooltip(EmbedBuilder builder, ItemStack itemStack)
+    {
+        VaultRuneItem.getEntries(itemStack).forEach(diyRoomEntry -> {
+            int count = diyRoomEntry.get(DIYRoomEntry.COUNT);
+
+            builder.appendDescription("- Has ").
+                appendDescription(String.valueOf(count)).
+                appendDescription(" ").
+                appendDescription(diyRoomEntry.getName().getString()).
+                appendDescription(" ").
+                appendDescription(count > 1 ? "Rooms" : "Room");
+            builder.appendDescription("\n");
+        });
     }
 
 
