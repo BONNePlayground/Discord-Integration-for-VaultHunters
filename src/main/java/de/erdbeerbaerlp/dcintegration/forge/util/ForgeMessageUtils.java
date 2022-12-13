@@ -30,115 +30,204 @@ import net.minecraftforge.registries.IForgeRegistry;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
-public class ForgeMessageUtils extends MessageUtils {
-
-    private static final IForgeRegistry<Item> itemreg = ForgeRegistries.ITEMS;
-
-    public static String formatPlayerName(Map.Entry<UUID, String> p) {
-        return formatPlayerName(p, true);
-    }
-
-    public static String formatPlayerName(Map.Entry<UUID, String> p, boolean chatFormat) {
-        return ChatFormatting.stripFormatting(p.getValue());
-    }
-
+public class ForgeMessageUtils extends MessageUtils
+{
     /**
      * Attempts to generate an {@link MessageEmbed} showing item info from an {@link Component} instance
      *
      * @param component The TextComponent to scan for item info
-     * @return an {@link MessageEmbed} when there was an Item info, or {@link null} if there was no item info OR the item info was disabled
+     * @return an {@link MessageEmbed} when there was an Item info, or {@link null} if there was no item info OR the
+     * item info was disabled
      */
-    public static MessageEmbed genItemStackEmbedIfAvailable(final Component component) {
-        if (!Configuration.instance().forgeSpecific.sendItemInfo) return null;
+    public static MessageEmbed genItemStackEmbedIfAvailable(final Component component)
+    {
+        if (!Configuration.instance().forgeSpecific.sendItemInfo)
+        {
+            return null;
+        }
+
         final JsonObject json = JsonParser.parseString(Component.Serializer.toJson(component)).getAsJsonObject();
-        if (json.has("with")) {
-            final JsonArray args = json.getAsJsonArray("with");
-            for (JsonElement el : args) {
-                if (el instanceof JsonObject) {
-                    JsonObject arg1 = (JsonObject) el;
-                    if (arg1.has("hoverEvent")) {
-                        final JsonObject hoverEvent = arg1.getAsJsonObject("hoverEvent");
-                        if (hoverEvent.has("action") && hoverEvent.get("action").getAsString().equals("show_item") && hoverEvent.has("contents")) {
-                            if (hoverEvent.getAsJsonObject("contents").has("tag")) {
-                                final JsonObject item = hoverEvent.getAsJsonObject("contents").getAsJsonObject();
-                                try {
-                                    final ItemStack is = new ItemStack(itemreg.getValue(new ResourceLocation(item.get("id").getAsString())));
-                                    if (item.has("tag")) {
-                                        final CompoundTag tag = (CompoundTag) NbtTagArgument.nbtTag().parse(new StringReader(item.get("tag").getAsString()));
-                                        is.setTag(tag);
-                                    }
-                                    final CompoundTag itemTag = is.getOrCreateTag();
-                                    final EmbedBuilder b = new EmbedBuilder();
-                                    String title = is.hasCustomHoverName() ? is.getDisplayName().getContents() : new TranslatableComponent(is.getItem().getDescriptionId()).getContents();
-                                    if (title.isEmpty())
-                                        title = is.getItem().getRegistryName().toString();
-                                    else
-                                        b.setFooter(is.getItem().getRegistryName().toString());
-                                    b.setTitle(title);
-                                    final StringBuilder tooltip = new StringBuilder();
-                                    boolean[] flags = new boolean[6]; // Enchantments, Modifiers, Unbreakable, CanDestroy, CanPlace, Other
-                                    Arrays.fill(flags, false); // Set everything visible
 
-                                    if (itemTag.contains("HideFlags")) {
-                                        final int input = (itemTag.getInt("HideFlags"));
-                                        for (int i = 0; i < flags.length; i++) {
-                                            flags[i] = (input & (1 << i)) != 0;
-                                        }
-                                    }
-                                    //Add Enchantments
-                                    if (!flags[0]) {
-                                        //Implementing this code myself because the original is broken
-                                        for (int i = 0; i < is.getEnchantmentTags().size(); ++i) {
-                                            final CompoundTag compoundnbt = is.getEnchantmentTags().getCompound(i);
-                                            Registry.ENCHANTMENT.getOptional(ResourceLocation.tryParse(compoundnbt.getString("id"))).ifPresent((ench) -> {
-                                                if (compoundnbt.get("lvl") != null) {
-                                                    final int level;
-                                                    if (compoundnbt.get("lvl") instanceof StringTag) {
-                                                        level = Integer.parseInt(compoundnbt.getString("lvl").replace("s", ""));
-                                                    } else
-                                                        level = compoundnbt.getInt("lvl") == 0 ? compoundnbt.getShort("lvl") : compoundnbt.getInt("lvl");
-                                                    tooltip.append(ChatFormatting.stripFormatting(ench.getFullname(level).getString())).append("\n");
-                                                }
-                                            });
-                                        }/*
-                                        EnchantmentHelper.getEnchantments(is).forEach((ench, lvl) -> {
-                                            tooltip.append(TextFormatting.getTextWithoutFormattingCodes(ench.getDisplayName(lvl).getUnformattedComponentText())).append("\n");
-                                        });*/
-                                    }
-                                    //Add Lores
-                                    final ListTag list = itemTag.getCompound("display").getList("Lore", 8);
-                                    list.forEach((nbt) -> {
-                                        try {
-                                            if (nbt instanceof StringTag) {
-                                                final TextComponent comp = (TextComponent) ComponentArgument.textComponent().parse(new StringReader(nbt.getAsString()));
-                                                tooltip.append("_").append(comp.getContents()).append("_\n");
-                                            }
-                                        } catch (CommandSyntaxException e) {
-                                            e.printStackTrace();
-                                        }
-                                    });
-                                    //Add 'Unbreakable' Tag
-                                    if (!flags[2] && itemTag.contains("Unbreakable") && itemTag.getBoolean("Unbreakable"))
-                                        tooltip.append("Unbreakable\n");
+        if (json.has("with"))
+        {
+            final JsonArray withArray = json.getAsJsonArray("with");
 
-                                    b.setDescription(tooltip.toString());
-                                    return b.build();
-                                } catch (CommandSyntaxException ignored) {
-                                    //Just go on and ignore it
-                                }
+            for (JsonElement object : withArray)
+            {
+                if (object instanceof JsonObject singleElement)
+                {
+                    if (singleElement.has("hoverEvent"))
+                    {
+                        final JsonObject hoverEvent = singleElement.getAsJsonObject("hoverEvent");
+
+                        if (hoverEvent.has("action") &&
+                            hoverEvent.get("action").getAsString().equals("show_item") &&
+                            hoverEvent.has("contents"))
+                        {
+                            if (hoverEvent.getAsJsonObject("contents").has("tag"))
+                            {
+                                return ForgeMessageUtils.parseJsonArgs(
+                                    hoverEvent.getAsJsonObject("contents").getAsJsonObject());
                             }
                         }
                     }
                 }
             }
         }
+
         return null;
     }
 
-    public static String formatPlayerName(Entity p) {
-        final Map.Entry<UUID, String> e = new DefaultMapEntry(p.getUUID(), p.getDisplayName().getContents().isEmpty() ? p.getName().getContents() : p.getDisplayName().getContents());
-        return formatPlayerName(e);
+
+    /**
+     * This method parses given item json data.
+     * @param itemJson item json data.
+     * @return MessageEmbed text for item.
+     */
+    private static MessageEmbed parseJsonArgs(JsonObject itemJson)
+    {
+        try
+        {
+            ItemStack itemStack = new ItemStack(itemreg.getValue(new ResourceLocation(itemJson.get("id").getAsString())));
+
+            if (itemJson.has("tag"))
+            {
+                CompoundTag tag = (CompoundTag) NbtTagArgument.nbtTag().parse(
+                    new StringReader(itemJson.get("tag").getAsString()));
+                itemStack.setTag(tag);
+            }
+
+            CompoundTag itemTag = itemStack.getOrCreateTag();
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+
+            String title = itemStack.hasCustomHoverName() ?
+                itemStack.getDisplayName().getContents() :
+                new TranslatableComponent(itemStack.getItem().getDescriptionId()).getContents();
+
+            ResourceLocation registryName = Objects.requireNonNull(itemStack.getItem().getRegistryName());
+
+            if (title.isEmpty())
+            {
+                title = registryName.toString();
+            }
+            else
+            {
+                embedBuilder.setFooter(registryName.toString());
+            }
+
+            embedBuilder.setTitle(title);
+            StringBuilder tooltip = new StringBuilder();
+
+            // Enchantments, Modifiers, Unbreakable, CanDestroy, CanPlace, Other
+            boolean[] flags = new boolean[6];
+            // Set everything visible
+            Arrays.fill(flags, false);
+
+            if (itemTag.contains("HideFlags"))
+            {
+                final int input = (itemTag.getInt("HideFlags"));
+                for (int i = 0; i < flags.length; i++)
+                {
+                    flags[i] = (input & (1 << i)) != 0;
+                }
+            }
+
+            //Add Enchantments
+            if (!flags[0])
+            {
+                //Implementing this code myself because the original is broken
+                for (int i = 0; i < itemStack.getEnchantmentTags().size(); ++i)
+                {
+                    final CompoundTag compoundTag = itemStack.getEnchantmentTags().getCompound(i);
+                    Registry.ENCHANTMENT.getOptional(ResourceLocation.tryParse(compoundTag.getString("id"))).
+                        ifPresent((enchantment) ->
+                    {
+                        if (compoundTag.get("lvl") != null)
+                        {
+                            final int level;
+                            if (compoundTag.get("lvl") instanceof StringTag)
+                            {
+                                level = Integer.parseInt(compoundTag.getString("lvl").
+                                    replace("s", ""));
+                            }
+                            else
+                                level = compoundTag.getInt("lvl") == 0 ?
+                                    compoundTag.getShort("lvl") : compoundTag.getInt("lvl");
+                            tooltip.append(ChatFormatting.stripFormatting(enchantment.getFullname(level).getString())).
+                                append("\n");
+                        }
+                    });
+                }
+            }
+
+            //Add Lores
+            final ListTag list = itemTag.getCompound("display").getList("Lore", 8);
+            list.forEach((nbt) ->
+            {
+                try
+                {
+                    if (nbt instanceof StringTag)
+                    {
+                        final TextComponent comp =
+                            (TextComponent) ComponentArgument.textComponent()
+                                .parse(new StringReader(nbt.getAsString()));
+                        tooltip.append("_").append(comp.getContents()).append("_\n");
+                    }
+                }
+                catch (CommandSyntaxException e)
+                {
+                    e.printStackTrace();
+                }
+            });
+
+            //Add 'Unbreakable' Tag
+            if (!flags[2] && itemTag.contains("Unbreakable") &&
+                itemTag.getBoolean("Unbreakable"))
+                tooltip.append("Unbreakable\n");
+
+            embedBuilder.setDescription(tooltip.toString());
+
+            return embedBuilder.build();
+        }
+        catch (CommandSyntaxException ignored)
+        {
+            //Just go on and ignore it
+        }
+
+        return null;
     }
+
+
+    /**
+     * This method formats given player entity name.
+     * @param player The player name.
+     * @return Formatted name text.
+     */
+    public static String formatPlayerName(Entity player)
+    {
+        final Map.Entry<UUID, String> entityMap = new DefaultMapEntry<>(player.getUUID(),
+            player.getDisplayName().getContents().isEmpty() ?
+                player.getName().getContents() :
+                player.getDisplayName().getContents());
+
+        return formatPlayerName(entityMap);
+    }
+
+
+    public static String formatPlayerName(Map.Entry<UUID, String> p)
+    {
+        return formatPlayerName(p, true);
+    }
+
+
+    public static String formatPlayerName(Map.Entry<UUID, String> p, boolean chatFormat)
+    {
+        return ChatFormatting.stripFormatting(p.getValue());
+    }
+
+
+    private static final IForgeRegistry<Item> itemreg = ForgeRegistries.ITEMS;
 }
