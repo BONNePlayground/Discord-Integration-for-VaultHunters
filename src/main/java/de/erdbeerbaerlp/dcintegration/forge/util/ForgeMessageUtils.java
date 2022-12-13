@@ -10,6 +10,7 @@ import dcshadow.org.apache.commons.collections4.keyvalue.DefaultMapEntry;
 import de.erdbeerbaerlp.dcintegration.common.storage.Configuration;
 import de.erdbeerbaerlp.dcintegration.common.util.MessageUtils;
 import iskallia.vault.gear.item.VaultGearItem;
+import iskallia.vault.init.ModBlocks;
 import iskallia.vault.item.RelicFragmentItem;
 import iskallia.vault.item.VaultCatalystInfusedItem;
 import iskallia.vault.item.VaultDollItem;
@@ -278,6 +279,11 @@ public class ForgeMessageUtils extends MessageUtils
             {
                 VaultItemsHandler.handleCatalystTooltip(builder, itemStack);
                 return builder.build();
+            }
+            else if (ModBlocks.VAULT_ARTIFACT.getRegistryName().equals(itemStack.getItem().getRegistryName()))
+            {
+                VaultItemsHandler.handleVaultArtifactTooltip(builder, itemTag);
+                return null;
             }
 
             return null;

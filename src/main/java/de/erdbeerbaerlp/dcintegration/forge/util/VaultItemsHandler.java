@@ -577,6 +577,19 @@ public class VaultItemsHandler
     }
 
 
+    /**
+     * This method adds Vault Artifact image to the discord chat.
+     * @param builder Embed Builder.
+     * @param itemTag Vault artifact tag.
+     */
+    public static void handleVaultArtifactTooltip(EmbedBuilder builder, CompoundTag itemTag)
+    {
+         int customModelData = Math.max(itemTag.getInt("CustomModelData"), 1);
+         String name = "vault_artifact_" + customModelData + ".png";
+         builder.setImage("https://bonne.id.lv/assets/img/" + name);
+    }
+
+
 // ---------------------------------------------------------------------
 // Section: Private processing methods
 // ---------------------------------------------------------------------
