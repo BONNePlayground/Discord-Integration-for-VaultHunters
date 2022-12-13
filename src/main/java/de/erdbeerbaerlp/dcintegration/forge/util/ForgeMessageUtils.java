@@ -9,6 +9,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dcshadow.org.apache.commons.collections4.keyvalue.DefaultMapEntry;
 import de.erdbeerbaerlp.dcintegration.common.storage.Configuration;
 import de.erdbeerbaerlp.dcintegration.common.util.MessageUtils;
+import iskallia.vault.gear.item.VaultGearItem;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.minecraft.ChatFormatting;
@@ -28,10 +29,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+
 
 public class ForgeMessageUtils extends MessageUtils
 {
@@ -101,7 +100,17 @@ public class ForgeMessageUtils extends MessageUtils
             }
 
             CompoundTag itemTag = itemStack.getOrCreateTag();
+
+            // Here we hook into Vault Hunters items.
+
+            if (itemJson.get("id").getAsString().startsWith("the_vault"))
+            {
+                return ForgeMessageUtils.craftVaultHuntersItemMessage(itemJson, itemStack, itemTag);
+            }
+
             EmbedBuilder embedBuilder = new EmbedBuilder();
+
+            // Here we continue to process vanilla items.
 
             String title = itemStack.hasCustomHoverName() ?
                 itemStack.getDisplayName().getContents() :
@@ -198,6 +207,38 @@ public class ForgeMessageUtils extends MessageUtils
         }
 
         return null;
+    }
+
+
+    /**
+     * This message crafts item descriptions for Vault Hunters items.
+     * @param itemJson Item JSON data.
+     * @param itemStack ItemStack item.
+     * @param itemTag Item Tag.
+     * @return MessageEmbed for Vault item.
+     */
+    private static MessageEmbed craftVaultHuntersItemMessage(JsonObject itemJson,
+        ItemStack itemStack,
+        CompoundTag itemTag)
+    {
+        try
+        {
+            EmbedBuilder builder = new EmbedBuilder();
+            builder.setTitle(itemStack.getHoverName().getString());
+
+            if (itemStack.getItem() instanceof VaultGearItem)
+            {
+                VaultItemsHandler.handleGearTooltip(builder, itemStack);
+                return builder.build();
+            }
+
+            return null;
+        }
+        catch (Exception e)
+        {
+            // If I fail, then return nothing.
+            return null;
+        }
     }
 
 
