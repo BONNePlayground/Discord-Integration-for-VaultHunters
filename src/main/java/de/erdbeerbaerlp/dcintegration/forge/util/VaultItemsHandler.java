@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.function.Predicate;
 
 import iskallia.vault.config.EtchingConfig;
+import iskallia.vault.config.TrinketConfig;
 import iskallia.vault.config.gear.VaultGearTierConfig;
 import iskallia.vault.core.data.key.ThemeKey;
 import iskallia.vault.core.vault.VaultRegistry;
@@ -23,6 +24,7 @@ import iskallia.vault.gear.attribute.VaultGearModifier;
 import iskallia.vault.gear.data.AttributeGearData;
 import iskallia.vault.gear.data.VaultGearData;
 import iskallia.vault.gear.item.VaultGearItem;
+import iskallia.vault.gear.trinket.TrinketEffect;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModDynamicModels;
 import iskallia.vault.init.ModGearAttributes;
@@ -472,6 +474,50 @@ public class VaultItemsHandler
             crystalData,
             "**Other Modifiers:**",
             catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isUnlisted(catalyst.getModifierId()));
+    }
+
+
+    /**
+     * This method parses VaultTrinket item tooltip into discord chat.
+     * @param builder Embed Builder.
+     * @param itemStack Vault Trinket Item Stack.
+     * @param itemTag The item tag data.
+     */
+    public static void handleTrinketTooltip(EmbedBuilder builder, ItemStack itemStack, CompoundTag itemTag)
+    {
+        // I do not want to include Botania in dependencies. This is workaround.
+
+        AttributeGearData data = AttributeGearData.read(itemStack);
+
+        if (data.getFirstValue(ModGearAttributes.STATE).orElse(VaultGearState.UNIDENTIFIED) == VaultGearState.IDENTIFIED)
+        {
+            int totalUses = itemTag.getInt("vaultUses");
+            int used = itemTag.getList("usedVaults", 10).size();
+            int remaining = Math.max(totalUses - used, 0);
+
+            builder.appendDescription("**Uses:** ").appendDescription(String.valueOf(remaining)).appendDescription("\n");
+
+            data.getFirstValue(ModGearAttributes.CRAFTED_BY).ifPresent(crafter ->
+                builder.appendDescription("**Crafted by:** ").appendDescription(crafter).appendDescription("\n"));
+
+            data.getFirstValue(ModGearAttributes.TRINKET_EFFECT).ifPresent(effect -> {
+                TrinketConfig.Trinket trinket = effect.getTrinketConfig();
+                builder.appendDescription(trinket.getEffectText()).appendDescription("\n");
+            });
+
+            data.getFirstValue(ModGearAttributes.TRINKET_EFFECT).
+                map(TrinketEffect::getConfig).
+                filter(TrinketEffect.Config::hasCuriosSlot).
+                map(TrinketEffect.Config::getCuriosSlot).
+                ifPresent(slot -> {
+                    MutableComponent slotTranslation = new TranslatableComponent("curios.slot").append(": ");
+                    MutableComponent slotType = new TranslatableComponent("curios.identifier." + slot);
+
+                    builder.appendDescription("\n").
+                        appendDescription(slotTranslation.getString()).
+                        appendDescription(slotType.getString());
+                });
+        }
     }
 
 

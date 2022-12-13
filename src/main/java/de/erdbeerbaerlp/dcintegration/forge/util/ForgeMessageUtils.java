@@ -14,6 +14,7 @@ import iskallia.vault.item.VaultDollItem;
 import iskallia.vault.item.VaultRuneItem;
 import iskallia.vault.item.crystal.VaultCrystalItem;
 import iskallia.vault.item.gear.EtchingItem;
+import iskallia.vault.item.gear.TrinketItem;
 import iskallia.vault.item.paxel.PaxelItem;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -259,6 +260,11 @@ public class ForgeMessageUtils extends MessageUtils
             else if (itemStack.getItem() instanceof VaultCrystalItem)
             {
                 VaultItemsHandler.handleVaultCrystalTooltip(builder, VaultCrystalItem.getData(itemStack));
+                return builder.build();
+            }
+            else if (itemStack.getItem() instanceof TrinketItem)
+            {
+                VaultItemsHandler.handleTrinketTooltip(builder, itemStack, itemTag);
                 return builder.build();
             }
 
