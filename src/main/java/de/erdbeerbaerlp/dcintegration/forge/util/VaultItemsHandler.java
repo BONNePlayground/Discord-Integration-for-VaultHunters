@@ -24,6 +24,7 @@ import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModDynamicModels;
 import iskallia.vault.init.ModGearAttributes;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -129,6 +130,51 @@ public class VaultItemsHandler
             }
         }
     }
+
+
+    /**
+     * This method parses doll tooltip into discord chat.
+     * @param builder Embed Builder.
+     * @param itemTag Vault Doll Item Tag.
+     */
+    public static void handleDollTooltip(EmbedBuilder builder, CompoundTag itemTag)
+    {
+        String owner = itemTag.getCompound("playerProfile").getString("Name");
+
+        builder.appendDescription("**Owner:**").
+            appendDescription(" ").
+            appendDescription(owner).
+            appendDescription("").
+            appendDescription("\n");
+
+        int lootPercent = (int) (itemTag.getFloat("lootPercent") * 100.0F);
+
+        builder.appendDescription("**Loot Efficiency:**").
+            appendDescription(" ").
+            appendDescription(String.format("%d", lootPercent) + "%").
+            appendDescription("\n");
+
+        int xpPercent = (int) (itemTag.getFloat("xpPercent") * 100.0F);
+
+        builder.appendDescription("**Experience Efficiency:**").
+            appendDescription(" ").
+            appendDescription(String.format("%d", xpPercent) + "%").
+            appendDescription("\n");
+
+        if (itemTag.contains("vaultUUID"))
+        {
+            builder.appendDescription("**Ready to be released!**");
+        }
+        else
+        {
+            builder.appendDescription("**Ready for a vault!**");
+        }
+    }
+
+
+// ---------------------------------------------------------------------
+// Section: Private processing methods
+// ---------------------------------------------------------------------
 
 
     /**

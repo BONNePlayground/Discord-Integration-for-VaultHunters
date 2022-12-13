@@ -10,6 +10,7 @@ import dcshadow.org.apache.commons.collections4.keyvalue.DefaultMapEntry;
 import de.erdbeerbaerlp.dcintegration.common.storage.Configuration;
 import de.erdbeerbaerlp.dcintegration.common.util.MessageUtils;
 import iskallia.vault.gear.item.VaultGearItem;
+import iskallia.vault.item.VaultDollItem;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.minecraft.ChatFormatting;
@@ -231,6 +232,12 @@ public class ForgeMessageUtils extends MessageUtils
                 VaultItemsHandler.handleGearTooltip(builder, itemStack);
                 return builder.build();
             }
+            else if (itemStack.getItem() instanceof VaultDollItem)
+            {
+                VaultItemsHandler.handleDollTooltip(builder, itemTag);
+                return builder.build();
+            }
+
 
             return null;
         }
