@@ -7,12 +7,14 @@
 package de.erdbeerbaerlp.dcintegration.forge.util;
 
 
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
 import iskallia.vault.config.EtchingConfig;
+import iskallia.vault.config.PaxelConfigs;
 import iskallia.vault.config.gear.VaultGearTierConfig;
 import iskallia.vault.dynamodel.model.armor.ArmorPieceModel;
 import iskallia.vault.gear.VaultGearState;
@@ -23,7 +25,9 @@ import iskallia.vault.gear.item.VaultGearItem;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModDynamicModels;
 import iskallia.vault.init.ModGearAttributes;
+import iskallia.vault.item.paxel.PaxelItem;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.*;
 import net.minecraft.world.item.Item;
@@ -168,6 +172,91 @@ public class VaultItemsHandler
         else
         {
             builder.appendDescription("**Ready for a vault!**");
+        }
+    }
+
+
+    /**
+     * This method parses paxel item tooltip into discord chat.
+     * @param builder Embed Builder.
+     * @param itemStack Vault Paxel Item Stack.
+     * @param paxelItem Vault Paxel Item.
+     */
+    public static void handlePaxelTooltip(EmbedBuilder builder, ItemStack itemStack, PaxelItem paxelItem)
+    {
+        int durability = paxelItem.getMaxDamage(itemStack);
+        float miningSpeed = PaxelItem.getUsableStat(itemStack, PaxelItem.Stat.MINING_SPEED);
+        float reach = PaxelItem.getUsableStat(itemStack, PaxelItem.Stat.REACH);
+        float copiously = PaxelItem.getUsableStat(itemStack, PaxelItem.Stat.COPIOUSLY);
+
+        // Generic information.
+
+        builder.appendDescription("**D:** " + FORMAT.format(durability));
+
+        if (reach > 0)
+        {
+            builder.appendDescription(" **R:** " + FORMAT.format(reach));
+        }
+
+        builder.appendDescription(" **S:** " + FORMAT.format(miningSpeed));
+
+        if (copiously > 0)
+        {
+            builder.appendDescription(" **C:** " + FORMAT.format(copiously) + "%");
+        }
+
+        builder.appendDescription("\n");
+
+        // Perks
+
+        List<PaxelItem.Perk> perks = PaxelItem.getPerks(itemStack);
+
+        if (perks.size() > 0)
+        {
+            builder.appendDescription("**Perks:**");
+            perks.forEach(perk -> {
+                builder.appendDescription("\n");
+                builder.appendDescription("  " + perk.getSerializedName());
+            });
+
+            builder.appendDescription("\n");
+        }
+
+        // Main information
+
+        int level = PaxelItem.getPaxelLevel(itemStack);
+        builder.appendDescription("**Level:** "  + level).appendDescription("\n");
+
+        builder.appendDescription(VaultItemsHandler.createRepairText(
+            PaxelItem.getUsedRepairSlots(itemStack),
+            PaxelItem.getMaxRepairSlots(itemStack))).
+            appendDescription("\n");
+
+        int sockets = PaxelItem.getSockets(itemStack);
+
+        if (sockets != 0)
+        {
+            builder.appendDescription("**Sockets:** ").
+                appendDescription(VaultItemsHandler.createDots(sockets, EMPTY_CIRCLE)).
+                appendDescription("\n");
+        }
+
+        builder.appendDescription("\n");
+
+        PaxelItem.Stat[] stats = PaxelItem.Stat.values();
+
+        for (int index = 0; index < stats.length; ++index)
+        {
+            PaxelItem.Stat stat = stats[index];
+
+            float value = PaxelItem.getStatUpgrade(itemStack, stat);
+
+            if (value != 0.0F)
+            {
+                builder.appendDescription("**" + stat.getReadableName() + "**");
+                builder.appendDescription(value > 0.0F ? " +" : " ");
+                builder.appendDescription("" + ModConfigs.PAXEL_CONFIGS.getUpgrade(stat).formatValue(value));
+            }
         }
     }
 
@@ -341,4 +430,9 @@ public class VaultItemsHandler
      * symbol for text fields.
      */
     private static final String SQUARE = "\u25A0";
+
+    /**
+     * Variable format for numbers.
+     */
+    private static final DecimalFormat FORMAT = new DecimalFormat("0.##");
 }
