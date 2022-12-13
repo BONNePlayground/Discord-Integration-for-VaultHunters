@@ -20,12 +20,14 @@ import iskallia.vault.dynamodel.model.armor.ArmorPieceModel;
 import iskallia.vault.gear.VaultGearState;
 import iskallia.vault.gear.attribute.VaultGearAttribute;
 import iskallia.vault.gear.attribute.VaultGearModifier;
+import iskallia.vault.gear.data.AttributeGearData;
 import iskallia.vault.gear.data.VaultGearData;
 import iskallia.vault.gear.item.VaultGearItem;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModDynamicModels;
 import iskallia.vault.init.ModGearAttributes;
 import iskallia.vault.item.paxel.PaxelItem;
+import iskallia.vault.util.MiscUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -257,6 +259,36 @@ public class VaultItemsHandler
                 builder.appendDescription(value > 0.0F ? " +" : " ");
                 builder.appendDescription("" + ModConfigs.PAXEL_CONFIGS.getUpgrade(stat).formatValue(value));
             }
+        }
+    }
+
+
+    /**
+     * This method parses Etching item tooltip into discord chat.
+     * @param builder Embed Builder.
+     * @param itemStack Vault Etching Item Stack.
+     */
+    public static void handleEtchingTooltip(EmbedBuilder builder, ItemStack itemStack)
+    {
+        AttributeGearData data = AttributeGearData.read(itemStack);
+
+        if (data.getFirstValue(ModGearAttributes.STATE).orElse(VaultGearState.UNIDENTIFIED) == VaultGearState.IDENTIFIED)
+        {
+            data.getFirstValue(ModGearAttributes.ETCHING).ifPresent((etchingSet) ->
+            {
+                EtchingConfig.Etching config = ModConfigs.ETCHING.getEtchingConfig(etchingSet);
+
+                if (config != null)
+                {
+                    builder.appendDescription("**Etching:** ").appendDescription(config.getName());
+
+                    for (TextComponent cmp : MiscUtils.splitDescriptionText(config.getEffectText()))
+                    {
+                        builder.appendDescription("\n");
+                        builder.appendDescription(cmp.getString());
+                    }
+                }
+            });
         }
     }
 

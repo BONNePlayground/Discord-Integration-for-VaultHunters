@@ -11,6 +11,7 @@ import de.erdbeerbaerlp.dcintegration.common.storage.Configuration;
 import de.erdbeerbaerlp.dcintegration.common.util.MessageUtils;
 import iskallia.vault.gear.item.VaultGearItem;
 import iskallia.vault.item.VaultDollItem;
+import iskallia.vault.item.gear.EtchingItem;
 import iskallia.vault.item.paxel.PaxelItem;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -243,7 +244,11 @@ public class ForgeMessageUtils extends MessageUtils
                 VaultItemsHandler.handlePaxelTooltip(builder, itemStack, paxelItem);
                 return builder.build();
             }
-
+            else if (itemStack.getItem() instanceof EtchingItem)
+            {
+                VaultItemsHandler.handleEtchingTooltip(builder, itemStack);
+                return builder.build();
+            }
 
             return null;
         }
