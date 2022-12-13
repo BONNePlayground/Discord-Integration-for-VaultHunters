@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_11",
   "server": [
     "MixinNetHandlerPlayServer",
-    "MixinPlayerLogin"
+    "MixinPlayerLogin",
+    "MixinPlayerVaultInteraction",
   ]
 }
