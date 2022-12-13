@@ -12,6 +12,7 @@ import de.erdbeerbaerlp.dcintegration.common.util.MessageUtils;
 import iskallia.vault.gear.item.VaultGearItem;
 import iskallia.vault.item.VaultDollItem;
 import iskallia.vault.item.VaultRuneItem;
+import iskallia.vault.item.crystal.VaultCrystalItem;
 import iskallia.vault.item.gear.EtchingItem;
 import iskallia.vault.item.paxel.PaxelItem;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -253,6 +254,11 @@ public class ForgeMessageUtils extends MessageUtils
             else if (itemStack.getItem() instanceof VaultRuneItem)
             {
                 VaultItemsHandler.handleRuneTooltip(builder, itemStack);
+                return builder.build();
+            }
+            else if (itemStack.getItem() instanceof VaultCrystalItem)
+            {
+                VaultItemsHandler.handleVaultCrystalTooltip(builder, VaultCrystalItem.getData(itemStack));
                 return builder.build();
             }
 

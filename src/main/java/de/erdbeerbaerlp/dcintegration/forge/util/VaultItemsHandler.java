@@ -8,13 +8,13 @@ package de.erdbeerbaerlp.dcintegration.forge.util;
 
 
 import java.text.DecimalFormat;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
 
 import iskallia.vault.config.EtchingConfig;
 import iskallia.vault.config.gear.VaultGearTierConfig;
+import iskallia.vault.core.data.key.ThemeKey;
+import iskallia.vault.core.vault.VaultRegistry;
 import iskallia.vault.core.world.generator.layout.DIYRoomEntry;
 import iskallia.vault.dynamodel.model.armor.ArmorPieceModel;
 import iskallia.vault.gear.VaultGearState;
@@ -27,8 +27,13 @@ import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModDynamicModels;
 import iskallia.vault.init.ModGearAttributes;
 import iskallia.vault.item.VaultRuneItem;
+import iskallia.vault.item.crystal.CrystalData;
+import iskallia.vault.item.crystal.theme.ValueCrystalTheme;
 import iskallia.vault.item.paxel.PaxelItem;
 import iskallia.vault.util.MiscUtils;
+import iskallia.vault.world.vault.gen.VaultRoomNames;
+import iskallia.vault.world.vault.modifier.VaultModifierStack;
+import iskallia.vault.world.vault.modifier.spi.VaultModifier;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.*;
@@ -314,6 +319,162 @@ public class VaultItemsHandler
     }
 
 
+    /**
+     * This method parses Vault Crystal item tooltip into discord chat.
+     * @param builder Embed Builder.
+     * @param crystalData Vault Crystal Data.
+     */
+    public static void handleVaultCrystalTooltip(EmbedBuilder builder, CrystalData crystalData)
+    {
+        builder.appendDescription("**Level:** " + crystalData.getLevel()).appendDescription("\n");
+
+        // Objective
+
+        if (crystalData.getObjective() == null)
+        {
+            builder.appendDescription("**Objective:** ???");
+        }
+        else
+        {
+            builder.appendDescription("**Objective:** ").
+                appendDescription(crystalData.getObjective().getName().getString());
+        }
+
+        builder.appendDescription("\n");
+
+        // Vault Theme
+
+        if (crystalData.getTheme() instanceof ValueCrystalTheme theme)
+        {
+            ThemeKey themeKey = VaultRegistry.THEME.getKey(theme.serializeNBT().getString("id"));
+
+            if (themeKey != null)
+            {
+                builder.appendDescription("**Theme:** ").appendDescription(themeKey.getName());
+            }
+        }
+        else
+        {
+            builder.appendDescription("**Theme:** ???");
+        }
+
+        builder.appendDescription("\n");
+
+        // Layout
+
+        if (crystalData.getLayout() == null)
+        {
+            builder.appendDescription("**Layout:** ???");
+        }
+        else
+        {
+            builder.appendDescription("**Layout:** ").
+                appendDescription(crystalData.getLayout().getName().getString());
+        }
+
+        builder.appendDescription("\n");
+
+        // Guarantee rooms
+
+        Map<String, Integer> guaranteeRooms = new LinkedHashMap<>();
+
+        crystalData.getGuaranteedRoomFilters().forEach(room -> {
+            int count = guaranteeRooms.getOrDefault(room, 0) + 1;
+            guaranteeRooms.put(room, count);
+        });
+
+        guaranteeRooms.forEach((room, count) -> {
+            Component roomName = VaultRoomNames.getName(room);
+
+            if (roomName != null)
+            {
+                builder.appendDescription("-Has ").
+                    appendDescription(String.valueOf(count)).
+                    appendDescription(" *").
+                    appendDescription(roomName.getString()).
+                    appendDescription("* ").
+                    appendDescription(count > 1 ? "Rooms" : "Room").
+                    appendDescription("\n");
+            }
+        });
+
+        // Instability
+
+        int instability = crystalData.getInstability();
+
+        if (instability > 0)
+        {
+            builder.appendDescription("**Instability:** ").
+                appendDescription(instability + "%").
+                appendDescription("\n");
+        }
+
+        // Echo
+        if (crystalData.getEchoData().getEchoCount() > 0)
+        {
+            builder.appendDescription("*Echoed*\n");
+            builder.appendDescription("**Instability:** ").
+                appendDescription(crystalData.getEchoData().getEchoCount() + "% Echo Rate").
+                appendDescription("\n");
+        }
+
+        // Exhausted
+        if (!crystalData.canBeModified())
+        {
+            builder.appendDescription("*Exhausted*\n");
+        }
+
+        // Cloned
+        if (crystalData.getDelegate().contains("Cloned"))
+        {
+            builder.appendDescription("*Cloned*\n");
+        }
+
+        // Clarity
+        if (crystalData.hasClarity())
+        {
+            builder.appendDescription("*Clarity*\n");
+        }
+
+        // Curses
+        int curseCount = crystalData.getCurseCount();
+
+        if (curseCount > 0)
+        {
+            if (crystalData.hasClarity())
+            {
+                VaultItemsHandler.populateCatalystInformation(builder,
+                    crystalData,
+                    "**Cursed:**",
+                    catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isCurse(catalyst.getModifierId()));
+            }
+            else
+            {
+                builder.appendDescription("**Cursed** ").
+                    appendDescription(CURSE.repeat(curseCount)).
+                    appendDescription("\n");
+            }
+        }
+
+        // Catalysts
+
+        VaultItemsHandler.populateCatalystInformation(builder,
+            crystalData,
+            "**Positive Modifiers:**",
+            catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isGood(catalyst.getModifierId()));
+
+        VaultItemsHandler.populateCatalystInformation(builder,
+            crystalData,
+            "**Negative Modifiers:**",
+            catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isBad(catalyst.getModifierId()));
+
+        VaultItemsHandler.populateCatalystInformation(builder,
+            crystalData,
+            "**Other Modifiers:**",
+            catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isUnlisted(catalyst.getModifierId()));
+    }
+
+
 // ---------------------------------------------------------------------
 // Section: Private processing methods
 // ---------------------------------------------------------------------
@@ -459,6 +620,38 @@ public class VaultItemsHandler
     }
 
 
+    /**
+     * This method adds crystal modifier data to the discord embed based on given filter.
+     * @param builder Builder that need to be populated.
+     * @param data Crystal Data object.
+     * @param header Header of elements.
+     * @param filter Filter for modifiers.
+     */
+    private static void populateCatalystInformation(EmbedBuilder builder,
+        CrystalData data,
+        String header,
+        Predicate<VaultModifierStack> filter)
+    {
+        List<VaultModifierStack> modifierList = data.getModifiers().stream().filter(filter).toList();
+
+        if (!modifierList.isEmpty())
+        {
+            builder.appendDescription(header).appendDescription("\n");
+
+            for (VaultModifierStack modifierStack : modifierList)
+            {
+                VaultModifier<?> vaultModifier = modifierStack.getModifier();
+                String formattedName = vaultModifier.getDisplayNameFormatted(modifierStack.getSize());
+
+                builder.appendDescription("  ").
+                    appendDescription("%dx".formatted(modifierStack.getSize())).
+                    appendDescription(formattedName).
+                    appendDescription("\n");
+            }
+        }
+    }
+
+
 // ---------------------------------------------------------------------
 // Section: Variables
 // ---------------------------------------------------------------------
@@ -483,6 +676,11 @@ public class VaultItemsHandler
      * symbol for text fields.
      */
     private static final String SQUARE = "\u25A0";
+
+    /**
+     * Symbol for text fields.
+     */
+    private static final String CURSE = "\u2620";
 
     /**
      * Variable format for numbers.
