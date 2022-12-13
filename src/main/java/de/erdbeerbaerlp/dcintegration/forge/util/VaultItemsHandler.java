@@ -17,7 +17,10 @@ import iskallia.vault.config.gear.VaultGearTierConfig;
 import iskallia.vault.core.data.key.ThemeKey;
 import iskallia.vault.core.vault.VaultRegistry;
 import iskallia.vault.core.world.generator.layout.DIYRoomEntry;
+import iskallia.vault.dynamodel.DynamicModel;
 import iskallia.vault.dynamodel.model.armor.ArmorPieceModel;
+import iskallia.vault.dynamodel.model.item.PlainItemModel;
+import iskallia.vault.dynamodel.registry.DynamicModelRegistry;
 import iskallia.vault.gear.VaultGearState;
 import iskallia.vault.gear.attribute.VaultGearAttribute;
 import iskallia.vault.gear.attribute.VaultGearModifier;
@@ -28,6 +31,8 @@ import iskallia.vault.gear.trinket.TrinketEffect;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModDynamicModels;
 import iskallia.vault.init.ModGearAttributes;
+import iskallia.vault.init.ModRelics;
+import iskallia.vault.item.RelicFragmentItem;
 import iskallia.vault.item.VaultRuneItem;
 import iskallia.vault.item.crystal.CrystalData;
 import iskallia.vault.item.crystal.theme.ValueCrystalTheme;
@@ -39,6 +44,7 @@ import iskallia.vault.world.vault.modifier.spi.VaultModifier;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.*;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -518,6 +524,30 @@ public class VaultItemsHandler
                         appendDescription(slotType.getString());
                 });
         }
+    }
+
+
+    /**
+     * This method parses Vault Relic Fragment item tooltip into discord chat.
+     * @param builder Embed Builder.
+     * @param itemStack Vault Trinket Item Stack.
+     * @param relic The item.
+     */
+    public static void handleRelicFragmentTooltip(EmbedBuilder builder, ItemStack itemStack, RelicFragmentItem relic)
+    {
+        Optional<ResourceLocation> resourceLocation = relic.getDynamicModelId(itemStack);
+        DynamicModelRegistry<PlainItemModel> fragmentRegistry = ModDynamicModels.Relics.FRAGMENT_REGISTRY;
+
+        resourceLocation = resourceLocation.
+            flatMap(fragmentRegistry::get).
+            map(DynamicModel::getId).
+            flatMap(ModRelics::getRelicOfFragment).
+            map(ModRelics.RelicRecipe::getResultingRelic);
+
+        fragmentRegistry = ModDynamicModels.Relics.RELIC_REGISTRY;
+
+        resourceLocation.flatMap(fragmentRegistry::get).ifPresent(relicModel ->
+            builder.appendDescription("**Assembles:** ").appendDescription(relicModel.getDisplayName()));
     }
 
 

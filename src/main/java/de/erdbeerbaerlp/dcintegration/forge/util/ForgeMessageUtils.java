@@ -10,6 +10,7 @@ import dcshadow.org.apache.commons.collections4.keyvalue.DefaultMapEntry;
 import de.erdbeerbaerlp.dcintegration.common.storage.Configuration;
 import de.erdbeerbaerlp.dcintegration.common.util.MessageUtils;
 import iskallia.vault.gear.item.VaultGearItem;
+import iskallia.vault.item.RelicFragmentItem;
 import iskallia.vault.item.VaultDollItem;
 import iskallia.vault.item.VaultRuneItem;
 import iskallia.vault.item.crystal.VaultCrystalItem;
@@ -265,6 +266,11 @@ public class ForgeMessageUtils extends MessageUtils
             else if (itemStack.getItem() instanceof TrinketItem)
             {
                 VaultItemsHandler.handleTrinketTooltip(builder, itemStack, itemTag);
+                return builder.build();
+            }
+            else if (itemStack.getItem() instanceof RelicFragmentItem relic)
+            {
+                VaultItemsHandler.handleRelicFragmentTooltip(builder, itemStack, relic);
                 return builder.build();
             }
 
