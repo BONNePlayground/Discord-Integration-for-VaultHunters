@@ -33,6 +33,7 @@ import iskallia.vault.init.ModDynamicModels;
 import iskallia.vault.init.ModGearAttributes;
 import iskallia.vault.init.ModRelics;
 import iskallia.vault.item.RelicFragmentItem;
+import iskallia.vault.item.VaultCatalystInfusedItem;
 import iskallia.vault.item.VaultRuneItem;
 import iskallia.vault.item.crystal.CrystalData;
 import iskallia.vault.item.crystal.theme.ValueCrystalTheme;
@@ -40,6 +41,7 @@ import iskallia.vault.item.paxel.PaxelItem;
 import iskallia.vault.util.MiscUtils;
 import iskallia.vault.world.vault.gen.VaultRoomNames;
 import iskallia.vault.world.vault.modifier.VaultModifierStack;
+import iskallia.vault.world.vault.modifier.registry.VaultModifierRegistry;
 import iskallia.vault.world.vault.modifier.spi.VaultModifier;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.minecraft.nbt.CompoundTag;
@@ -548,6 +550,30 @@ public class VaultItemsHandler
 
         resourceLocation.flatMap(fragmentRegistry::get).ifPresent(relicModel ->
             builder.appendDescription("**Assembles:** ").appendDescription(relicModel.getDisplayName()));
+    }
+
+
+    /**
+     * This method parses Vault Catalyst item tooltip into discord chat.
+     * @param builder Embed Builder.
+     * @param itemStack Vault Catalyst Item Stack.
+     */
+    public static void handleCatalystTooltip(EmbedBuilder builder, ItemStack itemStack)
+    {
+        List<ResourceLocation> modifierIdList = VaultCatalystInfusedItem.getModifiers(itemStack);
+
+        if (!modifierIdList.isEmpty())
+        {
+            builder.appendDescription("\n");
+            builder.appendDescription(new TranslatableComponent(modifierIdList.size() <= 1 ?
+                "tooltip.the_vault.vault_catalyst.modifier.singular" :
+                "tooltip.the_vault.vault_catalyst.modifier.plural").getString());
+            builder.appendDescription("\n");
+
+            modifierIdList.forEach(modifierId ->
+                VaultModifierRegistry.getOpt(modifierId).ifPresent(vaultModifier ->
+                    builder.appendDescription(vaultModifier.getDisplayName()).appendDescription("\n")));
+        }
     }
 
 
