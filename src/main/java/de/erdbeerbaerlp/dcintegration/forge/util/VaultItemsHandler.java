@@ -273,6 +273,7 @@ public class VaultItemsHandler
                 builder.appendDescription("**" + stat.getReadableName() + "**");
                 builder.appendDescription(value > 0.0F ? " +" : " ");
                 builder.appendDescription("" + ModConfigs.PAXEL_CONFIGS.getUpgrade(stat).formatValue(value));
+                builder.appendDescription("\n");
             }
         }
     }
