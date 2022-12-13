@@ -283,7 +283,7 @@ public class ForgeMessageUtils extends MessageUtils
             else if (ModBlocks.VAULT_ARTIFACT.getRegistryName().equals(itemStack.getItem().getRegistryName()))
             {
                 VaultItemsHandler.handleVaultArtifactTooltip(builder, itemTag);
-                return null;
+                return builder.build();
             }
 
             return null;
