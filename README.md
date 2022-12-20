@@ -1,11 +1,17 @@
-# Discord-Integration
-[![forthebadge](https://forthebadge.com/images/badges/works-on-my-machine.svg)](https://forthebadge.com)[![](http://cf.way2muchnoise.eu/full_324952_downloads.svg)![](http://cf.way2muchnoise.eu/versions/For%20Minecraft_324952_all.svg)](https://www.curseforge.com/minecraft/mc-mods/dcintegration)
+# Discord-Integration for Vault Hunters.
 
+This is a fork of [Discord Integration for Forge](ErdbeerbaerLP/DiscordIntegration-Forge) that is modified for Vault Hunters modpack.
 
-This mod links your server chat with a channel on your discord server.
+This modification implements Vault Hunters item parsing into the discord chat with proper item descriptions.
 
-Quick setup guide: https://github.com/ErdbeerbaerLP/Discord-Chat-Integration/wiki/Quick-Setup
-
-Addon Development: https://github.com/ErdbeerbaerLP/Discord-Chat-Integration/wiki/For-Developers
-
-[![Discord Server](https://discordapp.com/api/guilds/881880836377546824/widget.png?style=banner2)](https://discord.gg/PGPWdRBQms)
+The items in chat that displays properties:
+- Vault Gear Items (armor, sword, axe, shield and totems)
+- Vault Doll Item
+- Pickaxe Item
+- Etching Item
+- Vault Rune Item
+- Vault Crystal Item
+- Trinket Item
+- Relic Fragment Item
+- Vault Catalyst Infused Item
+- Vault Arfifact (displays Vault Artifact image)
