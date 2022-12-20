@@ -280,7 +280,7 @@ public class DiscordIntegration {
             TextChannel channel = discord_instance.getChannel(Configuration.instance().advanced.chatOutputChannelID);
             if (channel == null) return;
             discord_instance.sendMessage(ForgeMessageUtils.formatPlayerName(ev.getPlayer()), ev.getPlayer().getUUID().toString(), new DiscordMessage(embed, text, true), channel);
-            final String json = net.minecraft.network.chat.Component.Serializer.toJson(msg);
+            final String json = net.minecraft.network.chat.Component.Serializer.toJson(msg.plainCopy());
             Component comp = GsonComponentSerializer.gson().deserialize(json);
             final String editedJson = GsonComponentSerializer.gson().serialize(MessageUtils.mentionsToNames(comp, channel.getGuild()));
             ev.setComponent(net.minecraft.network.chat.Component.Serializer.fromJson(editedJson));
