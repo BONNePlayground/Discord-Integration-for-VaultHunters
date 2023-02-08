@@ -18,7 +18,7 @@ import iskallia.vault.item.VaultRuneItem;
 import iskallia.vault.item.crystal.VaultCrystalItem;
 import iskallia.vault.item.gear.EtchingItem;
 import iskallia.vault.item.gear.TrinketItem;
-import iskallia.vault.item.paxel.PaxelItem;
+import iskallia.vault.item.tool.PaxelItem;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.minecraft.ChatFormatting;

@@ -37,7 +37,7 @@ import iskallia.vault.item.VaultCatalystInfusedItem;
 import iskallia.vault.item.VaultRuneItem;
 import iskallia.vault.item.crystal.CrystalData;
 import iskallia.vault.item.crystal.theme.ValueCrystalTheme;
-import iskallia.vault.item.paxel.PaxelItem;
+import iskallia.vault.item.tool.PaxelItem;
 import iskallia.vault.util.MiscUtils;
 import iskallia.vault.world.vault.gen.VaultRoomNames;
 import iskallia.vault.world.vault.modifier.VaultModifierStack;
@@ -647,7 +647,7 @@ public class VaultItemsHandler
     {
         Optional.ofNullable(modifier.getAttribute().getReader().getDisplay(modifier, data, type, stack)).
             map(text -> {
-                if (!modifier.isLegendary())
+                if (modifier.getCategory() != VaultGearModifier.AffixCategory.LEGENDARY)
                 {
                     return text.getString();
                 }
@@ -678,7 +678,7 @@ public class VaultItemsHandler
 
                 if (tierDisplay != null)
                 {
-                    String legendaryInfo = modifier.isLegendary() ? "**Legendary** " : "";
+                    String legendaryInfo = modifier.getCategory() == VaultGearModifier.AffixCategory.LEGENDARY ? "**Legendary** " : "";
 
                     if (tierDisplay.getString().isEmpty())
                     {
