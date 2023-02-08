@@ -135,17 +135,19 @@ public class VaultItemsHandler
                 builder.appendDescription("\n");
             }
 
-            int prefixes = data.getFirstValue(ModGearAttributes.PREFIXES).orElse(0);
+            int maxPrefixes = data.getFirstValue(ModGearAttributes.PREFIXES).orElse(0);
+            List<VaultGearModifier<?>> prefixes = data.getModifiers(VaultGearModifier.AffixType.PREFIX);
 
-            if (prefixes > 0)
+            if (maxPrefixes > 0 || !prefixes.isEmpty())
             {
                 VaultItemsHandler.addAffixList(builder, data, VaultGearModifier.AffixType.PREFIX, itemStack);
                 builder.appendDescription("\n");
             }
 
-            int suffixes = data.getFirstValue(ModGearAttributes.SUFFIXES).orElse(0);
+            int maxSuffixes = data.getFirstValue(ModGearAttributes.SUFFIXES).orElse(0);
+            List<VaultGearModifier<?>> suffixes = data.getModifiers(VaultGearModifier.AffixType.SUFFIX);
 
-            if (suffixes > 0)
+            if (maxSuffixes > 0 || !suffixes.isEmpty())
             {
                 VaultItemsHandler.addAffixList(builder, data, VaultGearModifier.AffixType.SUFFIX, itemStack);
             }
