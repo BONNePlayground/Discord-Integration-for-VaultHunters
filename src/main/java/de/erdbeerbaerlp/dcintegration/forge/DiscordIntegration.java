@@ -242,7 +242,6 @@ public class DiscordIntegration {
     public void serverStopping(ServerStoppedEvent ev) {
         if (discord_instance != null) {
             ev.getServer().executeBlocking(() -> {
-                discord_instance.stopThreads();
                 try {
                     if (!Configuration.instance().webhook.enable)
                         discord_instance.sendMessageReturns(
@@ -258,7 +257,6 @@ public class DiscordIntegration {
                 discord_instance = null;
                 this.stopped = true;
                 LOGGER.info("Shut-down successfully!");
-
             });
         }
     }

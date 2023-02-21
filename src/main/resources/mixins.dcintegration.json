@@ -6,6 +6,6 @@
   "server": [
     "MixinNetHandlerPlayServer",
     "MixinPlayerLogin",
-    "MixinPlayerVaultInteraction",
+    "MixinPlayerVaultInteraction"
   ]
 }
