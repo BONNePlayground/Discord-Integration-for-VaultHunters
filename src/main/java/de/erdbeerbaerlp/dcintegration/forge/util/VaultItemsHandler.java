@@ -7,6 +7,8 @@
 package de.erdbeerbaerlp.dcintegration.forge.util;
 
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Predicate;
@@ -16,6 +18,7 @@ import iskallia.vault.config.TrinketConfig;
 import iskallia.vault.config.gear.VaultGearTierConfig;
 import iskallia.vault.core.data.key.ThemeKey;
 import iskallia.vault.core.vault.VaultRegistry;
+import iskallia.vault.core.world.generator.layout.ArchitectRoomEntry;
 import iskallia.vault.core.world.generator.layout.DIYRoomEntry;
 import iskallia.vault.dynamodel.DynamicModel;
 import iskallia.vault.dynamodel.model.armor.ArmorPieceModel;
@@ -391,27 +394,32 @@ public class VaultItemsHandler
 
         // Guarantee rooms
 
-        Map<String, Integer> guaranteeRooms = new LinkedHashMap<>();
+        if (crystalData.getLayout() instanceof ArchitectCrystalLayout layout)
+        {
+            Optional<JsonObject> jsonObject = layout.writeJson();
 
-        crystalData.getGuaranteedRoomFilters().forEach(room -> {
-            int count = guaranteeRooms.getOrDefault(room, 0) + 1;
-            guaranteeRooms.put(room, count);
-        });
+            jsonObject.ifPresent(json -> {
+                JsonArray entries = json.getAsJsonArray("entries");
 
-        guaranteeRooms.forEach((room, count) -> {
-            Component roomName = VaultRoomNames.getName(room);
+                entries.forEach(entry -> {
+                    ArchitectRoomEntry architectRoomEntry = ArchitectRoomEntry.fromJson((JsonObject) entry);
+                    Component roomName = architectRoomEntry.getName();
 
-            if (roomName != null)
-            {
-                builder.appendDescription("-Has ").
-                    appendDescription(String.valueOf(count)).
-                    appendDescription(" *").
-                    appendDescription(roomName.getString()).
-                    appendDescription("* ").
-                    appendDescription(count > 1 ? "Rooms" : "Room").
-                    appendDescription("\n");
-            }
-        });
+                    if (roomName != null)
+                    {
+                        int count = architectRoomEntry.get(ArchitectRoomEntry.COUNT);
+
+                        builder.appendDescription("-Has ").
+                            appendDescription(String.valueOf(count)).
+                            appendDescription(" *").
+                            appendDescription(roomName.getString()).
+                            appendDescription("* ").
+                            appendDescription(count > 1 ? "Rooms" : "Room").
+                            appendDescription("\n");
+                    }
+                });
+            });
+        }
 
         // Instability
 
