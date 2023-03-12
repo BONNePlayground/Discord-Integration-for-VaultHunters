@@ -374,7 +374,7 @@ public class VaultItemsHandler
         {
             String roomStr = entry.count > 1 ? "Rooms" : "Room";
 
-            builder.appendDescription(" • ").
+            builder.appendDescription(" \u2022 ").
                 appendDescription(String.valueOf(entry.count)).
                 appendDescription(" ").
                 appendDescription(entry.toRoomEntry().has(ArchitectRoomEntry.TYPE) ?
@@ -401,12 +401,12 @@ public class VaultItemsHandler
         builder.appendDescription("\n");
 
         // Vault Theme
-        builder.appendDescription("**Theme:**").
+        builder.appendDescription("**Theme:** ").
             appendDescription(parseThemeName(crystalData.getTheme()));
         builder.appendDescription("\n");
 
         // Vault Layout
-        builder.appendDescription("**Layout:**").
+        builder.appendDescription("**Layout:** ").
             appendDescription(parseLayoutName(crystalData.getLayout()));
         builder.appendDescription("\n");
 
@@ -883,9 +883,9 @@ public class VaultItemsHandler
         {
             int min = IntRoll.getMin(vaultTime.getRoll());
             int max = IntRoll.getMax(vaultTime.getRoll());
-            String text = UIHelper.formatTimeString(min);
+            String text = formatTimeString(min);
             if (min != max) {
-                text = text + " - " + UIHelper.formatTimeString(max);
+                text = text + " - " + formatTimeString(max);
             }
 
             return "**Time:** " + text;
