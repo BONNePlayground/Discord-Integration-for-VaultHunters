@@ -15,6 +15,7 @@ import iskallia.vault.item.RelicFragmentItem;
 import iskallia.vault.item.VaultCatalystInfusedItem;
 import iskallia.vault.item.VaultDollItem;
 import iskallia.vault.item.VaultRuneItem;
+import iskallia.vault.item.crystal.CrystalData;
 import iskallia.vault.item.crystal.VaultCrystalItem;
 import iskallia.vault.item.gear.EtchingItem;
 import iskallia.vault.item.gear.TrinketItem;
@@ -262,7 +263,7 @@ public class ForgeMessageUtils extends MessageUtils
             }
             else if (itemStack.getItem() instanceof VaultCrystalItem)
             {
-                VaultItemsHandler.handleVaultCrystalTooltip(builder, VaultCrystalItem.getData(itemStack));
+                VaultItemsHandler.handleVaultCrystalTooltip(builder, CrystalData.read(itemStack));
                 return builder.build();
             }
             else if (itemStack.getItem() instanceof TrinketItem)
