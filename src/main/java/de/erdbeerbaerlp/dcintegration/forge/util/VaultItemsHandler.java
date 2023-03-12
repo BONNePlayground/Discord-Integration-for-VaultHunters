@@ -36,6 +36,7 @@ import iskallia.vault.item.RelicFragmentItem;
 import iskallia.vault.item.VaultCatalystInfusedItem;
 import iskallia.vault.item.VaultRuneItem;
 import iskallia.vault.item.crystal.CrystalData;
+import iskallia.vault.item.crystal.objective.*;
 import iskallia.vault.item.crystal.theme.ValueCrystalTheme;
 import iskallia.vault.item.tool.PaxelItem;
 import iskallia.vault.util.MiscUtils;
@@ -350,7 +351,7 @@ public class VaultItemsHandler
         else
         {
             builder.appendDescription("**Objective:** ").
-                appendDescription(crystalData.getObjective().getName().getString());
+                appendDescription(getObjectiveName(crystalData.getObjective()));
         }
 
         builder.appendDescription("\n");
@@ -766,6 +767,52 @@ public class VaultItemsHandler
                     appendDescription(formattedName).
                     appendDescription("\n");
             }
+        }
+    }
+
+
+    /**
+     * Returns Crystal Objective name from instance of CrystalObjective.
+     * @param objective objective class.
+     * @return Name of the objective.
+     */
+    private static String getObjectiveName(CrystalObjective objective)
+    {
+        if (objective instanceof BossCrystalObjective)
+        {
+            return "Hunt the Guardians";
+        }
+        else if (objective instanceof CakeCrystalObjective)
+        {
+            return "Cake Hunt";
+        }
+        else if (objective instanceof ElixirCrystalObjective)
+        {
+            return "Elixir Rush";
+        }
+        else if (objective instanceof EmptyCrystalObjective)
+        {
+            return "None";
+        }
+        else if (objective instanceof MonolithCrystalObjective)
+        {
+            return "Light the Monoliths";
+        }
+        else if (objective instanceof NullCrystalObjective)
+        {
+            return "???";
+        }
+        else if (objective instanceof ScavengerCrystalObjective)
+        {
+            return "Scavenger Hunt";
+        }
+        else if (objective instanceof SpeedrunCrystalObjective)
+        {
+            return "Speedrun";
+        }
+        else
+        {
+            return "???";
         }
     }
 
