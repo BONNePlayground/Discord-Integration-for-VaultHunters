@@ -36,6 +36,7 @@ import iskallia.vault.item.RelicFragmentItem;
 import iskallia.vault.item.VaultCatalystInfusedItem;
 import iskallia.vault.item.VaultRuneItem;
 import iskallia.vault.item.crystal.CrystalData;
+import iskallia.vault.item.crystal.layout.*;
 import iskallia.vault.item.crystal.objective.*;
 import iskallia.vault.item.crystal.theme.ValueCrystalTheme;
 import iskallia.vault.item.tool.PaxelItem;
@@ -383,7 +384,7 @@ public class VaultItemsHandler
         else
         {
             builder.appendDescription("**Layout:** ").
-                appendDescription(crystalData.getLayout().getName().getString());
+                appendDescription(getLayoutName(crystalData.getLayout()));
         }
 
         builder.appendDescription("\n");
@@ -809,6 +810,44 @@ public class VaultItemsHandler
         else if (objective instanceof SpeedrunCrystalObjective)
         {
             return "Speedrun";
+        }
+        else
+        {
+            return "???";
+        }
+    }
+
+
+    /**
+     * Returns Crystal Layout name from instance of CrystalLayout.
+     * @param layout layout class.
+     * @return Name of the layout.
+     */
+    private static String getLayoutName(CrystalLayout layout)
+    {
+        if (layout instanceof ArchitectCrystalLayout)
+        {
+            return "Architect";
+        }
+        else if (layout instanceof ClassicCircleCrystalLayout)
+        {
+            return "Circle";
+        }
+        else if (layout instanceof ClassicPolygonCrystalLayout)
+        {
+            return "Polygon";
+        }
+        else if (layout instanceof ClassicSpiralCrystalLayout)
+        {
+            return "Spiral";
+        }
+        else if (layout instanceof ClassicInfiniteCrystalLayout)
+        {
+            return "Infinite";
+        }
+        else if (layout instanceof NullCrystalLayout)
+        {
+            return "???";
         }
         else
         {
