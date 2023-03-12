@@ -364,7 +364,7 @@ public class VaultItemsHandler
             appendDescription(Math.round(compoundTag.getFloat("completion") * 100.0F) + "%").
             appendDescription("\n");
         builder.appendDescription("**Time:** ").
-            appendDescription(UIHelper.formatTimeString(compoundTag.getInt("time"))).
+            appendDescription(formatTimeString(compoundTag.getInt("time"))).
             appendDescription("\n");
         builder.appendDescription("**Instability:** ").
             appendDescription(Math.round(compoundTag.getInt("instability") * 100.0F) + "%").
@@ -952,6 +952,21 @@ public class VaultItemsHandler
             modifierList,
             "**Other Modifiers:**",
             catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isUnlisted(catalyst.getModifierId()));
+    }
+
+
+    /**
+     * Time parser
+     * @param remainingTicks how many ticks remaining
+     * @return remaining ticks parsed as string.
+     */
+    private static String formatTimeString(int remainingTicks)
+    {
+        long seconds = remainingTicks / 20 % 60;
+        long minutes = remainingTicks / 20 / 60 % 60;
+        long hours = remainingTicks / 20 / 60 / 60;
+        return hours > 0L ? String.format("%02d:%02d:%02d", hours, minutes, seconds) :
+            String.format("%02d:%02d", minutes, seconds);
     }
 
 
