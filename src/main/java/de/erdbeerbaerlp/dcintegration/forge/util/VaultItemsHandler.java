@@ -529,7 +529,7 @@ public class VaultItemsHandler
 
         int emptyAffixes = data.getFirstValue(affixAttribute).orElse(0);
 
-        builder.appendDescription("**" + type.getDisplayName() + ":** ");
+        builder.appendDescription("**" + (affixes.size() != 1 ? type.getPlural() : type.getSingular()) + ":** ");
         builder.appendDescription("\n");
         affixes.forEach(modifier -> VaultItemsHandler.addAffix(builder, modifier, data, type, itemStack));
 
