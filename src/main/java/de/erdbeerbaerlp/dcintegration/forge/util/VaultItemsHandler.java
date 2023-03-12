@@ -13,6 +13,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Predicate;
 
+import iskallia.vault.client.gui.helper.UIHelper;
 import iskallia.vault.config.EtchingConfig;
 import iskallia.vault.config.TrinketConfig;
 import iskallia.vault.config.gear.VaultGearTierConfig;
@@ -20,6 +21,7 @@ import iskallia.vault.core.data.key.ThemeKey;
 import iskallia.vault.core.vault.VaultRegistry;
 import iskallia.vault.core.world.generator.layout.ArchitectRoomEntry;
 import iskallia.vault.core.world.generator.layout.DIYRoomEntry;
+import iskallia.vault.core.world.roll.IntRoll;
 import iskallia.vault.dynamodel.DynamicModel;
 import iskallia.vault.dynamodel.model.armor.ArmorPieceModel;
 import iskallia.vault.dynamodel.model.item.PlainItemModel;
@@ -39,12 +41,19 @@ import iskallia.vault.item.RelicFragmentItem;
 import iskallia.vault.item.VaultCatalystInfusedItem;
 import iskallia.vault.item.VaultRuneItem;
 import iskallia.vault.item.crystal.CrystalData;
+import iskallia.vault.item.crystal.CrystalModifiers;
 import iskallia.vault.item.crystal.layout.*;
 import iskallia.vault.item.crystal.objective.*;
+import iskallia.vault.item.crystal.theme.CrystalTheme;
+import iskallia.vault.item.crystal.theme.NullCrystalTheme;
+import iskallia.vault.item.crystal.theme.PoolCrystalTheme;
 import iskallia.vault.item.crystal.theme.ValueCrystalTheme;
+import iskallia.vault.item.crystal.time.CrystalTime;
+import iskallia.vault.item.crystal.time.NullCrystalTime;
+import iskallia.vault.item.crystal.time.PoolCrystalTime;
+import iskallia.vault.item.crystal.time.ValueCrystalTime;
 import iskallia.vault.item.tool.PaxelItem;
 import iskallia.vault.util.MiscUtils;
-import iskallia.vault.world.vault.gen.VaultRoomNames;
 import iskallia.vault.world.vault.modifier.VaultModifierStack;
 import iskallia.vault.world.vault.modifier.registry.VaultModifierRegistry;
 import iskallia.vault.world.vault.modifier.spi.VaultModifier;
@@ -347,82 +356,30 @@ public class VaultItemsHandler
         builder.appendDescription("**Level:** " + crystalData.getLevel()).appendDescription("\n");
 
         // Objective
-
-        if (crystalData.getObjective() == null)
-        {
-            builder.appendDescription("**Objective:** ???");
-        }
-        else
-        {
-            builder.appendDescription("**Objective:** ").
-                appendDescription(getObjectiveName(crystalData.getObjective()));
-        }
-
+        builder.appendDescription("**Objective:** ").
+            appendDescription(parseObjectiveName(crystalData.getObjective()));
         builder.appendDescription("\n");
 
         // Vault Theme
-
-        if (crystalData.getTheme() instanceof ValueCrystalTheme theme)
-        {
-            ThemeKey themeKey = VaultRegistry.THEME.getKey(theme.serializeNBT().getString("id"));
-
-            if (themeKey != null)
-            {
-                builder.appendDescription("**Theme:** ").appendDescription(themeKey.getName());
-            }
-        }
-        else
-        {
-            builder.appendDescription("**Theme:** ???");
-        }
-
+        builder.appendDescription("**Theme:**").
+            appendDescription(parseThemeName(crystalData.getTheme()));
         builder.appendDescription("\n");
 
-        // Layout
-
-        if (crystalData.getLayout() == null)
-        {
-            builder.appendDescription("**Layout:** ???");
-        }
-        else
-        {
-            builder.appendDescription("**Layout:** ").
-                appendDescription(getLayoutName(crystalData.getLayout()));
-        }
-
+        // Vault Layout
+        builder.appendDescription("**Layout:**").
+            appendDescription(parseLayoutName(crystalData.getLayout()));
         builder.appendDescription("\n");
 
-        // Guarantee rooms
+        // Vault Time
+        String time = parseTime(crystalData.getTime());
 
-        if (crystalData.getLayout() instanceof ArchitectCrystalLayout layout)
+        if (!time.isBlank())
         {
-            Optional<JsonObject> jsonObject = layout.writeJson();
-
-            jsonObject.ifPresent(json -> {
-                JsonArray entries = json.getAsJsonArray("entries");
-
-                entries.forEach(entry -> {
-                    ArchitectRoomEntry architectRoomEntry = ArchitectRoomEntry.fromJson((JsonObject) entry);
-                    Component roomName = architectRoomEntry.getName();
-
-                    if (roomName != null)
-                    {
-                        int count = architectRoomEntry.get(ArchitectRoomEntry.COUNT);
-
-                        builder.appendDescription("-Has ").
-                            appendDescription(String.valueOf(count)).
-                            appendDescription(" *").
-                            appendDescription(roomName.getString()).
-                            appendDescription("* ").
-                            appendDescription(count > 1 ? "Rooms" : "Room").
-                            appendDescription("\n");
-                    }
-                });
-            });
+            builder.appendDescription(time);
+            builder.appendDescription("\n");
         }
 
         // Instability
-
         float instability = crystalData.getInstability();
 
         if (instability > 0.0F)
@@ -432,69 +389,14 @@ public class VaultItemsHandler
                 appendDescription("\n");
         }
 
-        // Echo
-        if (crystalData.getEchoData().getEchoCount() > 0)
+        // Unmodifiable
+        if (crystalData.isUnmodifiable())
         {
-            builder.appendDescription("*Echoed*\n");
-            builder.appendDescription("**Instability:** ").
-                appendDescription(crystalData.getEchoData().getEchoCount() + "% Echo Rate").
-                appendDescription("\n");
+            builder.appendDescription("**Unmodifiable**").appendDescription("\n");
         }
 
-        // Exhausted
-        if (!crystalData.canBeModified())
-        {
-            builder.appendDescription("*Exhausted*\n");
-        }
-
-        // Cloned
-        if (crystalData.getDelegate().contains("Cloned"))
-        {
-            builder.appendDescription("*Cloned*\n");
-        }
-
-        // Clarity
-        if (crystalData.hasClarity())
-        {
-            builder.appendDescription("*Clarity*\n");
-        }
-
-        // Curses
-        int curseCount = crystalData.getCurseCount();
-
-        if (curseCount > 0)
-        {
-            if (crystalData.hasClarity())
-            {
-                VaultItemsHandler.populateCatalystInformation(builder,
-                    crystalData,
-                    "**Cursed:**",
-                    catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isCurse(catalyst.getModifierId()));
-            }
-            else
-            {
-                builder.appendDescription("**Cursed** ").
-                    appendDescription(CURSE.repeat(curseCount)).
-                    appendDescription("\n");
-            }
-        }
-
-        // Catalysts
-
-        VaultItemsHandler.populateCatalystInformation(builder,
-            crystalData,
-            "**Positive Modifiers:**",
-            catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isGood(catalyst.getModifierId()));
-
-        VaultItemsHandler.populateCatalystInformation(builder,
-            crystalData,
-            "**Negative Modifiers:**",
-            catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isBad(catalyst.getModifierId()));
-
-        VaultItemsHandler.populateCatalystInformation(builder,
-            crystalData,
-            "**Other Modifiers:**",
-            catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isUnlisted(catalyst.getModifierId()));
+        // Modifiers
+        VaultItemsHandler.parseModifiers(builder, crystalData.getModifiers());
     }
 
 
@@ -756,11 +658,11 @@ public class VaultItemsHandler
      * @param filter Filter for modifiers.
      */
     private static void populateCatalystInformation(EmbedBuilder builder,
-        CrystalData data,
+        List<VaultModifierStack> data,
         String header,
         Predicate<VaultModifierStack> filter)
     {
-        List<VaultModifierStack> modifierList = data.getModifiers().stream().filter(filter).toList();
+        List<VaultModifierStack> modifierList = data.stream().filter(filter).toList();
 
         if (!modifierList.isEmpty())
         {
@@ -782,10 +684,10 @@ public class VaultItemsHandler
 
     /**
      * Returns Crystal Objective name from instance of CrystalObjective.
-     * @param objective objective class.
+     * @param objective class.
      * @return Name of the objective.
      */
-    private static String getObjectiveName(CrystalObjective objective)
+    private static String parseObjectiveName(CrystalObjective objective)
     {
         if (objective instanceof BossCrystalObjective)
         {
@@ -827,15 +729,77 @@ public class VaultItemsHandler
 
 
     /**
+     * Returns Crystal Theme name from instance of CrystalTheme.
+     * @param theme class.
+     * @return Name of the theme.
+     */
+    private static String parseThemeName(CrystalTheme theme)
+    {
+        if (theme instanceof PoolCrystalTheme)
+        {
+            return "???";
+        }
+        else if (theme instanceof ValueCrystalTheme)
+        {
+            ThemeKey themeKey = VaultRegistry.THEME.getKey(theme.serializeNBT().getString("id"));
+
+            if (themeKey == null)
+            {
+                return "Unknown";
+            }
+            else
+            {
+                return themeKey.getName();
+            }
+        }
+        else if (theme instanceof NullCrystalTheme)
+        {
+            return "???";
+        }
+        else
+        {
+            return "???";
+        }
+    }
+
+
+    /**
      * Returns Crystal Layout name from instance of CrystalLayout.
-     * @param layout layout class.
+     * @param layout class.
      * @return Name of the layout.
      */
-    private static String getLayoutName(CrystalLayout layout)
+    private static String parseLayoutName(CrystalLayout layout)
     {
         if (layout instanceof ArchitectCrystalLayout)
         {
-            return "Architect";
+            StringBuilder builder = new StringBuilder();
+            builder.append("Architect").append("\n");
+
+            Optional<JsonObject> jsonObject = layout.writeJson();
+
+            jsonObject.ifPresent(json -> {
+                JsonArray entries = json.getAsJsonArray("entries");
+
+                entries.forEach(entry -> {
+                    ArchitectRoomEntry architectRoomEntry = ArchitectRoomEntry.fromJson((JsonObject) entry);
+                    Component roomName = architectRoomEntry.getName();
+
+                    if (roomName != null)
+                    {
+                        int count = architectRoomEntry.get(ArchitectRoomEntry.COUNT);
+
+                        builder.append("-Has ").
+                            append(String.valueOf(count)).
+                            append(" *").
+                            append(roomName.getString()).
+                            append("* ").
+                            append(count > 1 ? "Rooms" : "Room").
+                            append("\n");
+                    }
+                });
+            });
+
+            return builder.toString();
         }
         else if (layout instanceof ClassicCircleCrystalLayout)
         {
@@ -861,6 +825,93 @@ public class VaultItemsHandler
         {
             return "???";
         }
+    }
+
+
+    /**
+     * Returns Crystal Time name from instance of CrystalTime.
+     * @param time class.
+     * @return Name of the time.
+     */
+    private static String parseTime(CrystalTime time)
+    {
+        if (time instanceof PoolCrystalTime)
+        {
+            return "";
+        }
+        else if (time instanceof ValueCrystalTime vaultTime)
+        {
+            int min = IntRoll.getMin(vaultTime.getRoll());
+            int max = IntRoll.getMax(vaultTime.getRoll());
+            String text = UIHelper.formatTimeString(min);
+            if (min != max) {
+                text = text + " - " + UIHelper.formatTimeString(max);
+            }
+
+            return "**Time:** " + text;
+        }
+        else if (time instanceof NullCrystalTime)
+        {
+            return "";
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+
+    /**
+     * This method parses crystal modifiers.
+     * @param builder Builder that need to be populated.
+     * @param modifiers The object that contains all crystal modifiers.
+     */
+    private static void parseModifiers(EmbedBuilder builder, CrystalModifiers modifiers)
+    {
+        if (modifiers.hasClarity()) {
+            builder.appendDescription("*Clarity*\n");
+        }
+
+        List<VaultModifierStack> modifierList = new ArrayList<>();
+
+        for (VaultModifierStack modifier : modifiers)
+        {
+            modifierList.add(modifier);
+        }
+
+        int curseCount = modifiers.getCurseCount();
+
+        if (curseCount > 0)
+        {
+            if (modifiers.hasClarity())
+            {
+                VaultItemsHandler.populateCatalystInformation(builder,
+                    modifierList,
+                    "**Cursed:**",
+                    catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isCurse(catalyst.getModifierId()));
+            }
+            else
+            {
+                builder.appendDescription("**Cursed** ").
+                    appendDescription(CURSE.repeat(curseCount)).
+                    appendDescription("\n");
+            }
+        }
+
+        VaultItemsHandler.populateCatalystInformation(builder,
+            modifierList,
+            "**Positive Modifiers:**",
+            catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isGood(catalyst.getModifierId()));
+
+        VaultItemsHandler.populateCatalystInformation(builder,
+            modifierList,
+            "**Negative Modifiers:**",
+            catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isBad(catalyst.getModifierId()));
+
+        VaultItemsHandler.populateCatalystInformation(builder,
+            modifierList,
+            "**Other Modifiers:**",
+            catalyst -> ModConfigs.VAULT_CRYSTAL_CATALYST.isUnlisted(catalyst.getModifierId()));
     }
 
 
