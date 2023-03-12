@@ -423,12 +423,12 @@ public class VaultItemsHandler
 
         // Instability
 
-        int instability = crystalData.getInstability();
+        float instability = crystalData.getInstability();
 
-        if (instability > 0)
+        if (instability > 0.0F)
         {
             builder.appendDescription("**Instability:** ").
-                appendDescription(instability + "%").
+                appendDescription(Math.round(crystalData.getInstability() * 100.0F) + "%").
                 appendDescription("\n");
         }
 
