@@ -37,6 +37,7 @@ import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModDynamicModels;
 import iskallia.vault.init.ModGearAttributes;
 import iskallia.vault.init.ModRelics;
+import iskallia.vault.item.InscriptionItem;
 import iskallia.vault.item.RelicFragmentItem;
 import iskallia.vault.item.VaultCatalystInfusedItem;
 import iskallia.vault.item.VaultRuneItem;
@@ -52,12 +53,14 @@ import iskallia.vault.item.crystal.time.CrystalTime;
 import iskallia.vault.item.crystal.time.NullCrystalTime;
 import iskallia.vault.item.crystal.time.PoolCrystalTime;
 import iskallia.vault.item.crystal.time.ValueCrystalTime;
+import iskallia.vault.item.data.InscriptionData;
 import iskallia.vault.item.tool.PaxelItem;
 import iskallia.vault.util.MiscUtils;
 import iskallia.vault.world.vault.modifier.VaultModifierStack;
 import iskallia.vault.world.vault.modifier.registry.VaultModifierRegistry;
 import iskallia.vault.world.vault.modifier.spi.VaultModifier;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
@@ -343,6 +346,43 @@ public class VaultItemsHandler
                 appendDescription(count > 1 ? "Rooms" : "Room");
             builder.appendDescription("\n");
         });
+    }
+
+
+    /**
+     * This method parses Vault Inscription item tooltip into discord chat.
+     * @param builder Embed Builder.
+     * @param itemStack Vault Rune Item Stack.
+     */
+    public static void handleInscriptionTooltip(EmbedBuilder builder, ItemStack itemStack)
+    {
+        InscriptionData data = InscriptionData.from(itemStack);
+
+        CompoundTag compoundTag = data.serializeNBT();
+
+        builder.appendDescription("**Completion:** ").
+            appendDescription(Math.round(compoundTag.getFloat("completion") * 100.0F) + "%").
+            appendDescription("\n");
+        builder.appendDescription("**Time:** ").
+            appendDescription(UIHelper.formatTimeString(compoundTag.getInt("time"))).
+            appendDescription("\n");
+        builder.appendDescription("**Instability:** ").
+            appendDescription(Math.round(compoundTag.getInt("instability") * 100.0F) + "%").
+            appendDescription("\n");
+
+        for (InscriptionData.Entry entry : data.getEntries())
+        {
+            String roomStr = entry.count > 1 ? "Rooms" : "Room";
+
+            builder.appendDescription(" • ").
+                appendDescription(String.valueOf(entry.count)).
+                appendDescription(" ").
+                appendDescription(entry.toRoomEntry().has(ArchitectRoomEntry.TYPE) ?
+                    entry.toRoomEntry().get(ArchitectRoomEntry.TYPE).getName() : "Unknown").
+                appendDescription(" ").
+                appendDescription(roomStr).
+                appendDescription("\n");
+        }
     }
 
 
