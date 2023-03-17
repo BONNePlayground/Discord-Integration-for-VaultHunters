@@ -37,10 +37,7 @@ import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModDynamicModels;
 import iskallia.vault.init.ModGearAttributes;
 import iskallia.vault.init.ModRelics;
-import iskallia.vault.item.InscriptionItem;
-import iskallia.vault.item.RelicFragmentItem;
-import iskallia.vault.item.VaultCatalystInfusedItem;
-import iskallia.vault.item.VaultRuneItem;
+import iskallia.vault.item.*;
 import iskallia.vault.item.crystal.CrystalData;
 import iskallia.vault.item.crystal.CrystalModifiers;
 import iskallia.vault.item.crystal.layout.*;
@@ -542,6 +539,20 @@ public class VaultItemsHandler
          int customModelData = Math.max(itemTag.getInt("CustomModelData"), 1);
          String name = "vault_artifact_" + customModelData + ".png";
          builder.setImage("https://bonne.id.lv/assets/img/" + name);
+    }
+
+
+    /**
+     * This method adds Vault Augment Item description the discord chat.
+     * @param builder Embed Builder.
+     * @param itemStack Vault augment item.
+     */
+    public static void handleAugmentTooltip(EmbedBuilder builder, ItemStack itemStack)
+    {
+        builder.appendDescription("**Theme:** ");
+        AugmentItem.getTheme(itemStack).ifPresentOrElse(
+            (key) -> builder.appendDescription(key.getName()),
+            () -> builder.appendDescription("???"));
     }
 
 

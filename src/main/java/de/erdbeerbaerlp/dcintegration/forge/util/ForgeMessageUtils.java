@@ -11,6 +11,7 @@ import de.erdbeerbaerlp.dcintegration.common.storage.Configuration;
 import de.erdbeerbaerlp.dcintegration.common.util.MessageUtils;
 import iskallia.vault.gear.item.VaultGearItem;
 import iskallia.vault.init.ModBlocks;
+import iskallia.vault.init.ModItems;
 import iskallia.vault.item.*;
 import iskallia.vault.item.crystal.CrystalData;
 import iskallia.vault.item.crystal.VaultCrystalItem;
@@ -281,6 +282,11 @@ public class ForgeMessageUtils extends MessageUtils
             else if (itemStack.getItem() instanceof VaultCatalystInfusedItem)
             {
                 VaultItemsHandler.handleCatalystTooltip(builder, itemStack);
+                return builder.build();
+            }
+            else if (itemStack.getItem() instanceof AugmentItem)
+            {
+                VaultItemsHandler.handleAugmentTooltip(builder, itemStack);
                 return builder.build();
             }
             else if (ModBlocks.VAULT_ARTIFACT.getRegistryName().equals(itemStack.getItem().getRegistryName()))
